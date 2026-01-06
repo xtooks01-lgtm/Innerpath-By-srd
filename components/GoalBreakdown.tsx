@@ -80,8 +80,18 @@ const GoalBreakdown: React.FC<GoalBreakdownProps> = ({ goal, onUpdateGoal, onCom
   const notifyUser = useCallback((title: string, body: string) => {
     if ('Notification' in window && Notification.permission === 'granted') {
       try {
+        // Use service worker notification if available for better background reliability
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.ready.then(registration => {
+            registration.showNotification(title, { body, icon: '/icon.png' });
+          });
+        } else {
+          new Notification(title, { body });
+        }
+      } catch (e) {
+        // Fallback to basic notification
         new Notification(title, { body });
-      } catch (e) {}
+      }
     }
   }, []);
 
@@ -125,7 +135,6 @@ const GoalBreakdown: React.FC<GoalBreakdownProps> = ({ goal, onUpdateGoal, onCom
         notifyUser("Step Concluded", `Our focus on step ${activeTaskIndex + 1} has finished. Beginning again.`);
         playTTS(`Step ${activeTaskIndex + 1} has finished. I am beginning it again for you.`);
       } else {
-        // Fix: Explicitly type prevGoal and use 'as const' to prevent status string widening
         onUpdateGoal((prevGoal: Goal | null) => {
           if (!prevGoal) return null;
           const updatedTasks: SubTask[] = prevGoal.subTasks.map((t, idx) => 

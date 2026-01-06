@@ -1,8 +1,7 @@
 {
   "name": "Copy of Copy of InnerPath Master AI 6",
-  "description": "A high-performance personal growth mentor app featuring AI goal breakdown, XP tracking, live voice interaction, and visual goal scanning.",
+  "description": "A high-performance personal growth mentor app featuring AI goal breakdown, XP tracking, and visual goal scanning.",
   "requestFramePermissions": [
-    "microphone",
     "camera",
     "geolocation"
   ]

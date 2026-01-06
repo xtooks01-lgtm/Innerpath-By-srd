@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { UserProfile, AppState, AppTab, Goal, TimetableSlot, QuestRecord } from './types';
 import { ICONS } from './constants';
@@ -9,7 +10,6 @@ import Mentor from './components/Mentor';
 import ProfileTab from './components/ProfileTab';
 import StatsTab from './components/StatsTab';
 import Tutorial from './components/Tutorial';
-import VoiceHub from './components/VoiceHub';
 import Summary from './components/Summary';
 
 const STORAGE_KEY = 'innerpath_master_data_v6';
@@ -141,7 +141,6 @@ const App: React.FC = () => {
           <Quest 
             user={user} 
             onNewGoal={() => setAppState(AppState.GOAL_ENTRY)}
-            onOpenVoice={() => setAppState(AppState.VOICE_HUB)}
             onOpenMentor={() => setActiveTab(AppTab.MENTOR)}
             timetable={timetable}
             setTimetable={setTimetable}
@@ -180,8 +179,6 @@ const App: React.FC = () => {
         ) : null;
       case AppState.SUMMARY:
         return activeGoal ? <Summary goal={activeGoal} onDone={() => { setActiveGoal(null); setAppState(AppState.MAIN); }} /> : null;
-      case AppState.VOICE_HUB:
-        return <VoiceHub onBack={() => setAppState(AppState.MAIN)} />;
       case AppState.MAIN:
       default:
         return (
@@ -193,7 +190,7 @@ const App: React.FC = () => {
             <nav className="fixed bottom-6 left-4 right-4 bg-slate-900/80 backdrop-blur-2xl border border-white/5 px-6 py-3 flex justify-around items-center z-50 rounded-[2rem] shadow-2xl transition-all duration-500">
               {(Object.keys(AppTab) as Array<keyof typeof AppTab>).map((key) => {
                 const tab = AppTab[key];
-                const Icon = tab === AppTab.QUEST ? ICONS.Award : tab === AppTab.MENTOR ? ICONS.Mic : tab === AppTab.STATS ? ICONS.ChartBar : ICONS.User;
+                const Icon = tab === AppTab.QUEST ? ICONS.Award : tab === AppTab.MENTOR ? ICONS.Target : tab === AppTab.STATS ? ICONS.ChartBar : ICONS.User;
                 const label = tab === AppTab.QUEST ? 'Plan' : tab === AppTab.MENTOR ? 'Mentor' : tab === AppTab.STATS ? 'Stats' : 'Profile';
                 
                 return (

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { UserProfile, TimetableSlot, QuestRecord } from '../types';
 import { ICONS } from '../constants';
 import { getDailyBriefing, findNearbyResources } from '../services/geminiService';
@@ -8,7 +8,6 @@ import { playTTS } from '../services/audioService';
 interface QuestProps {
   user: UserProfile;
   onNewGoal: () => void;
-  onOpenVoice: () => void;
   timetable: TimetableSlot[];
   setTimetable: React.Dispatch<React.SetStateAction<TimetableSlot[]>>;
   onTaskDone: (xp: number, record: Omit<QuestRecord, 'xpChange'>) => void;
@@ -17,7 +16,7 @@ interface QuestProps {
 }
 
 const Quest: React.FC<QuestProps> = ({ 
-  user, onNewGoal, onOpenVoice, timetable, setTimetable, onTaskDone, onTaskMissed, onOpenMentor 
+  user, onNewGoal, timetable, setTimetable, onTaskDone, onTaskMissed, onOpenMentor 
 }) => {
   const [isAddingSlot, setIsAddingSlot] = useState(false);
   const [newSlot, setNewSlot] = useState({ start: '09:00', end: '10:00', name: '' });
@@ -26,8 +25,6 @@ const Quest: React.FC<QuestProps> = ({
   const [discovering, setDiscovering] = useState(false);
   const [nearbyInfo, setNearbyInfo] = useState<{text: string, locations: any[]} | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isVoiceActive, setIsVoiceActive] = useState(false);
-  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -132,20 +129,6 @@ const Quest: React.FC<QuestProps> = ({
     setIsAddingSlot(false);
   };
 
-  const startVoiceInput = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
-    recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.lang = 'en-US';
-    recognitionRef.current.onstart = () => setIsVoiceActive(true);
-    recognitionRef.current.onresult = (event: any) => {
-      setNewSlot(prev => ({ ...prev, name: event.results[0][0].transcript }));
-      setIsVoiceActive(false);
-    };
-    recognitionRef.current.onerror = () => setIsVoiceActive(false);
-    recognitionRef.current.start();
-  };
-
   const toggleSlot = (id: string) => {
     const slot = processedSlots.find(s => s.id === id);
     if (!slot || slot.isCompleted) return;
@@ -182,7 +165,7 @@ const Quest: React.FC<QuestProps> = ({
       {/* Rudh-h's Presence */}
       <div className="glass p-8 rounded-[2.5rem] relative overflow-hidden group border-primary/10 bg-gradient-to-br from-primary/5 to-transparent">
         <div className="absolute top-0 right-0 p-6 opacity-5 transition-transform group-hover:scale-110 duration-700">
-          <ICONS.Mic size={64} className="text-primary" />
+          <ICONS.Target size={64} className="text-primary" />
         </div>
         <div className="flex items-center gap-3 mb-4">
           <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
@@ -227,14 +210,8 @@ const Quest: React.FC<QuestProps> = ({
                 placeholder="What focus calls to you, friend?" 
                 value={newSlot.name} 
                 onChange={e => setNewSlot({...newSlot, name: e.target.value})} 
-                className="w-full bg-slate-950/50 border border-white/5 p-5 rounded-[1.5rem] outline-none text-sm pr-16 focus:border-primary/50 text-white" 
+                className="w-full bg-slate-950/50 border border-white/5 p-5 rounded-[1.5rem] outline-none text-sm focus:border-primary/50 text-white" 
               />
-              <button 
-                onClick={startVoiceInput} 
-                className={`absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-xl transition-all ${isVoiceActive ? 'bg-rose-500 text-white animate-pulse' : 'bg-white/5 text-slate-500 hover:text-white'}`}
-              >
-                <ICONS.Mic size={20} />
-              </button>
             </div>
             <div className="flex gap-4 pt-2">
               <button onClick={addSlot} className="flex-1 py-5 bg-primary rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:opacity-90 transition-all">Embrace Step</button>
@@ -289,7 +266,7 @@ const Quest: React.FC<QuestProps> = ({
                     )}
                     {slot.status === 'expired' && !slot.isCompleted && (
                       <span className="text-[10px] font-black uppercase text-rose-500/80 tracking-widest flex items-center gap-2">
-                        <ICONS.VolumeX size={14} /> Reflection Needed
+                        <ICONS.X size={14} /> Reflection Needed
                       </span>
                     )}
                     {slot.status === 'upcoming' && (

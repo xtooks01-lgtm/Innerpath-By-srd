@@ -113,6 +113,29 @@ export const suggestGoalsWithAI = async (user: UserProfile): Promise<{ suggestio
   return JSON.parse(response.text || '{"suggestions": []}');
 };
 
+export const categorizeGoalWithAI = async (title: string, topic: string): Promise<{ category: string }> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const prompt = `Based on this goal title: "${title}" and topic: "${topic}", which of these categories fits best: learning, projects, fitness, creativity, or wellbeing? Return the category name in JSON format. Choose only one from the list.`;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: prompt,
+    config: {
+      systemInstruction: "You are a specialized classifier for the InnerPath app. Your job is to return the single best category for the user's goal in JSON format.",
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          category: { type: Type.STRING, description: 'The chosen category: learning, projects, fitness, creativity, or wellbeing.' }
+        },
+        required: ['category']
+      }
+    }
+  });
+
+  return JSON.parse(response.text || '{"category": "learning"}');
+};
+
 export const analyzeImageForGoal = async (base64Image: string): Promise<{ title: string; topic: string; category: string }> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({

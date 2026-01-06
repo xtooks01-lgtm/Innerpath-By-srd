@@ -1,3 +1,4 @@
+
 export interface UserProfile {
   name: string;
   xp: number;
@@ -71,8 +72,6 @@ export enum AppState {
   MAIN = 'MAIN',
   GOAL_ENTRY = 'GOAL_ENTRY',
   GOAL_BREAKDOWN = 'GOAL_BREAKDOWN',
-  VOICE_HUB = 'VOICE_HUB',
-  LIVE_SYNC = 'LIVE_SYNC',
   SUMMARY = 'SUMMARY'
 }
 

@@ -5,7 +5,6 @@ import { ICONS } from '../constants';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { playTTS, isVoiceOutputEnabled, setVoiceOutputEnabled } from '../services/audioService';
 import { SYSTEM_PERSONA } from '../services/geminiService';
-import LiveSession from './LiveSession';
 
 interface MentorProps {
   user: UserProfile;
@@ -18,7 +17,6 @@ const Mentor: React.FC<MentorProps> = ({ user }) => {
   });
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isLive, setIsLive] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(isVoiceOutputEnabled());
   const [isListening, setIsListening] = useState(false);
   
@@ -100,22 +98,18 @@ const Mentor: React.FC<MentorProps> = ({ user }) => {
     recognitionRef.current.start();
   };
 
-  if (isLive) {
-    return <LiveSession onBack={() => setIsLive(false)} user={user} />;
-  }
-
   return (
     <div className="flex flex-col h-full animate-in fade-in duration-500">
       <header className="py-4 border-b border-white/5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-            <ICONS.Mic className="text-white" />
+            <ICONS.Target className="text-white" />
           </div>
           <div>
             <h2 className="text-lg font-black tracking-tight uppercase text-white">RUDH-H</h2>
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Shared Presence</span>
+              <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Mindful Connection</span>
             </div>
           </div>
         </div>
@@ -127,12 +121,6 @@ const Mentor: React.FC<MentorProps> = ({ user }) => {
             title={voiceEnabled ? "Hear Rudh-h" : "Mute Rudh-h"}
           >
             {voiceEnabled ? <ICONS.Volume2 size={18} /> : <ICONS.VolumeX size={18} />}
-          </button>
-          <button 
-            onClick={() => setIsLive(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-primary/30 text-white"
-          >
-            <ICONS.Star /> Live Presence
           </button>
         </div>
       </header>

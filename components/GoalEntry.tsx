@@ -1,8 +1,8 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ICONS } from '../constants';
 import { Goal, UserProfile } from '../types';
-import { analyzeImageForGoal, suggestGoalsWithAI } from '../services/geminiService';
+import { analyzeImageForGoal, suggestGoalsWithAI, categorizeGoalWithAI } from '../services/geminiService';
 
 interface GoalEntryProps {
   user: UserProfile;
@@ -20,7 +20,36 @@ const GoalEntry: React.FC<GoalEntryProps> = ({ user, onBack, onGoalBreakdown }) 
   const [scanning, setScanning] = useState(false);
   const [fetchingSuggestions, setFetchingSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<{title: string, topic: string, category: string}[]>([]);
+  const [suggestedCategory, setSuggestedCategory] = useState<string | null>(null);
+  const [isCategorizing, setIsCategorizing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Debounced Effect for Category Suggestion
+  useEffect(() => {
+    if (title.length < 3 && topic.length < 3) {
+      setSuggestedCategory(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsCategorizing(true);
+      try {
+        const result = await categorizeGoalWithAI(title, topic);
+        const cat = result.category.toLowerCase();
+        if (CATEGORIES.includes(cat)) {
+          setSuggestedCategory(cat);
+          // Only auto-switch if user hasn't explicitly clicked a category yet? 
+          // For now, let's just highlight it for a better user-driven experience.
+        }
+      } catch (err) {
+        console.error("Categorization failed", err);
+      } finally {
+        setIsCategorizing(false);
+      }
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [title, topic]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,22 +196,48 @@ const GoalEntry: React.FC<GoalEntryProps> = ({ user, onBack, onGoalBreakdown }) 
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-400">Type of Journey</label>
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setCategory(cat)}
-                className={`px-4 py-2 rounded-full border text-sm capitalize transition-all ${
-                  category === cat ? 'bg-indigo-600 border-indigo-500' : 'bg-white/5 border-white/10 text-slate-400'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center px-1">
+            <label className="text-sm font-semibold text-slate-400">Type of Journey</label>
+            {isCategorizing && (
+              <div className="flex items-center gap-1.5 animate-pulse">
+                <div className="w-1 h-1 bg-primary rounded-full" />
+                <span className="text-[8px] font-black uppercase text-primary tracking-widest">Rudh-h is thinking...</span>
+              </div>
+            )}
           </div>
+          <div className="flex flex-wrap gap-2">
+            {CATEGORIES.map(cat => {
+              const isSuggested = suggestedCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setCategory(cat)}
+                  className={`relative group px-5 py-2.5 rounded-full border text-xs font-black uppercase tracking-widest transition-all ${
+                    category === cat 
+                      ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' 
+                      : isSuggested
+                        ? 'bg-primary/10 border-primary/40 text-primary active-glow'
+                        : 'bg-white/5 border-white/10 text-slate-400'
+                  }`}
+                >
+                  {isSuggested && (
+                    <span className="absolute -top-1.5 -right-1 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-primary border border-white/20"></span>
+                    </span>
+                  )}
+                  {cat}
+                </button>
+              );
+            })}
+          </div>
+          {suggestedCategory && (
+            <p className="text-[9px] font-bold text-primary/70 uppercase tracking-widest ml-1 animate-in fade-in">
+              ✨ Rudh-h suggests the "{suggestedCategory}" path for your focus.
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -209,7 +264,7 @@ const GoalEntry: React.FC<GoalEntryProps> = ({ user, onBack, onGoalBreakdown }) 
 
         <button 
           type="submit"
-          className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20"
+          className="w-full py-5 bg-primary rounded-2xl font-black text-lg uppercase tracking-widest transition-all shadow-2xl shadow-primary/20 hover:scale-[1.01] active:scale-95 text-white"
         >
           Create My Steps
         </button>
